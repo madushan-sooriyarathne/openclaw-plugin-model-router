@@ -1,0 +1,60 @@
+export const DIMENSION_WEIGHTS = {
+  COST_EFFICIENCY: 0.25,
+  TASK_SUITABILITY: 0.20,
+  CONTEXT_WINDOW: 0.15,
+  SPEED: 0.10,
+  QUALITY: 0.10,
+  RELIABILITY: 0.05,
+  MULTILINGUAL: 0.05,
+  CODE_GENERATION: 0.03,
+  REASONING_DEPTH: 0.03,
+  CREATIVITY: 0.02,
+  SAFETY: 0.01,
+  LATENCY_TOLERANCE: 0.005,
+  PROVIDER_DIVERSITY: 0.0025,
+  EXPERIMENTAL_FEATURES: 0.0025,
+} as const;
+
+export const TOKEN_ESTIMATE_DIVISOR = 4;
+
+export const LENGTH_THRESHOLDS = {
+  TINY: 50,
+  SHORT: 150,
+  MEDIUM: 500,
+  LONG: 1500,
+} as const;
+
+export const LENGTH_SCORES = {
+  TINY: 0.0,
+  SHORT: 0.3,
+  MEDIUM: 0.6,
+  LONG: 1.0,
+  VERY_LONG: 1.5,
+} as const;
+
+export const CONTEXT_WINDOW_SIZES = {
+  CLAUDE: 200000,
+  GPT4: 128000,
+  LLAMA: 128000,
+  QWEN: 32000,
+  DEFAULT: 8000,
+} as const;
+
+export const MODEL_QUALITY_SCORES = {
+  OPUS: 0.95,
+  SONNET: 0.90,
+  GPT4: 0.90,
+  CLAUDE: 0.85,
+  LLAMA_3_3: 0.75,
+  QWEN: 0.70,
+  DEFAULT: 0.60,
+} as const;
+
+export const SIGMOID_PARAMS = {
+  K: 10,
+  MIDPOINT: 0.3,
+} as const;
+
+export const LOG_FILE_MAX_SIZE = 10 * 1024 * 1024;
+export const DEFAULT_TIMEOUT_MS = 100;
+export const DEFAULT_CACHE_TTL_SECONDS = 300;

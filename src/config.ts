@@ -1,7 +1,3 @@
-/**
- * Configuration management for Model Router Plugin
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
@@ -44,97 +40,13 @@ export class ConfigManager {
   private config!: PluginConfig;
   private dimensions!: DimensionsConfig;
   private tiers!: TiersConfig;
-  private configPath: string;
 
-  constructor(baseDir?: string) {
-    this.configPath = baseDir || path.join(process.env.HOME!, '.openclaw', 'plugins', 'model-router');
-  }
+  constructor(private configPath: string = path.join(process.env.HOME!, '.openclaw', 'plugins', 'model-router')) {}
 
   async load(): Promise<void> {
-    // Load main config
     this.config = await this.loadConfig();
-    
-    // Load dimensions and tiers
-    this.dimensions = await this.loadDimensions();
-    this.tiers = await this.loadTiers();
-  }
-
-  private async loadConfig(): Promise<PluginConfig> {
-    const configFile = path.join(this.configPath, 'config', 'default.yaml');
-    
-    try {
-      if (fs.existsSync(configFile)) {
-        const content = fs.readFileSync(configFile, 'utf8');
-        const loaded = yaml.parse(content);
-        
-        // Merge with defaults
-        return { ...DEFAULT_CONFIG, ...loaded };
-      }
-    } catch (error) {
-      console.warn(`Failed to load config from ${configFile}, using defaults:`, error);
-    }
-    
-    return DEFAULT_CONFIG;
-  }
-
-  private async loadDimensions(): Promise<DimensionsConfig> {
-    const dimensionsFile = path.join(this.configPath, 'config', 'dimensions.json');
-    
-    try {
-      if (fs.existsSync(dimensionsFile)) {
-        const content = fs.readFileSync(dimensionsFile, 'utf8');
-        return JSON.parse(content);
-      }
-    } catch (error) {
-      console.error(`Failed to load dimensions from ${dimensionsFile}:`, error);
-    }
-    
-    // Fallback: load from Python skill location
-    const fallbackPath = path.join(
-      process.env.HOME!,
-      '.openclaw',
-      'workspace',
-      'skills',
-      'model-router',
-      'dimensions.json'
-    );
-    
-    if (fs.existsSync(fallbackPath)) {
-      const content = fs.readFileSync(fallbackPath, 'utf8');
-      return JSON.parse(content);
-    }
-    
-    throw new Error('dimensions.json not found in plugin or skill directory');
-  }
-
-  private async loadTiers(): Promise<TiersConfig> {
-    const tiersFile = path.join(this.configPath, 'config', 'tiers.json');
-    
-    try {
-      if (fs.existsSync(tiersFile)) {
-        const content = fs.readFileSync(tiersFile, 'utf8');
-        return JSON.parse(content);
-      }
-    } catch (error) {
-      console.error(`Failed to load tiers from ${tiersFile}:`, error);
-    }
-    
-    // Fallback: load from Python skill location
-    const fallbackPath = path.join(
-      process.env.HOME!,
-      '.openclaw',
-      'workspace',
-      'skills',
-      'model-router',
-      'tiers.json'
-    );
-    
-    if (fs.existsSync(fallbackPath)) {
-      const content = fs.readFileSync(fallbackPath, 'utf8');
-      return JSON.parse(content);
-    }
-    
-    throw new Error('tiers.json not found in plugin or skill directory');
+    this.dimensions = await this.loadJson<DimensionsConfig>('dimensions.json');
+    this.tiers = await this.loadJson<TiersConfig>('tiers.json');
   }
 
   getConfig(): PluginConfig {
@@ -150,18 +62,50 @@ export class ConfigManager {
   }
 
   isEnabled(channel?: string): boolean {
-    if (!this.config.enabled) {
-      return false;
-    }
-    
+    if (!this.config.enabled) return false;
     if (channel && this.config.channels[channel]) {
       return this.config.channels[channel].enabled;
     }
-    
     return true;
   }
 
   getStrategy(): 'cost-optimized' | 'quality-first' | 'balanced' {
     return this.config.strategy;
+  }
+
+  private async loadConfig(): Promise<PluginConfig> {
+    const configFile = path.join(this.configPath, 'config', 'default.yaml');
+    
+    if (!fs.existsSync(configFile)) return DEFAULT_CONFIG;
+
+    try {
+      const content = fs.readFileSync(configFile, 'utf8');
+      const loaded = yaml.parse(content);
+      return { ...DEFAULT_CONFIG, ...loaded };
+    } catch (error) {
+      console.warn(`Failed to load config from ${configFile}, using defaults:`, error);
+      return DEFAULT_CONFIG;
+    }
+  }
+
+  private async loadJson<T>(filename: string): Promise<T> {
+    const primaryPath = path.join(this.configPath, 'config', filename);
+    const fallbackPath = path.join(
+      process.env.HOME!,
+      '.openclaw',
+      'workspace',
+      'skills',
+      'model-router',
+      filename
+    );
+
+    const filePath = fs.existsSync(primaryPath) ? primaryPath : fallbackPath;
+    
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`${filename} not found in plugin or skill directory`);
+    }
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(content);
   }
 }

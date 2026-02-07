@@ -1,7 +1,3 @@
-/**
- * Core routing logic - intelligent model selection
- */
-
 import { 
   ComplexityLevel, 
   DimensionScore, 
@@ -13,164 +9,46 @@ import {
 } from './types';
 import { MessageClassifier } from './classifiers';
 import { ModelScorer } from './scorer';
+import { SIGMOID_PARAMS } from './constants';
 
 export class ModelRouter {
   private classifier: MessageClassifier;
   private scorer: ModelScorer;
-  private dimensions: DimensionsConfig;
-  private tiers: TiersConfig;
 
-  constructor(dimensions: DimensionsConfig, tiers: TiersConfig) {
+  constructor(
+    private dimensions: DimensionsConfig,
+    private tiers: TiersConfig
+  ) {
     this.classifier = new MessageClassifier();
     this.scorer = new ModelScorer();
-    this.dimensions = dimensions;
-    this.tiers = tiers;
   }
 
-  /**
-   * Main routing function
-   */
   async route(message: MessageContext, preferFree: boolean = true): Promise<RoutingResult> {
     const startTime = Date.now();
-
-    // 1. Calculate dimension scores
     const dimensionScores = this.calculateDimensionScores(message.text);
-    const totalScore = Object.values(dimensionScores).reduce((sum, score) => sum + score, 0);
-
-    // 2. Determine complexity tier
+    const totalScore = this.sumScores(dimensionScores);
     const tier = this.determineComplexityTier(dimensionScores, totalScore);
-
-    // 3. Get tier configuration
-    const tierConfig = this.tiers.tiers[tier];
-
-    // 4. Select model (free-first if enabled)
-    let model: string;
-    let fullModel: string;
-    let fallback: string | null;
-    let fullFallback: string | null;
-
-    if (preferFree && tierConfig.free) {
-      model = tierConfig.free;
-      fullModel = tierConfig.fullFree!;
-      fallback = tierConfig.paid;
-      fullFallback = tierConfig.fullPaid;
-    } else {
-      model = tierConfig.paid;
-      fullModel = tierConfig.fullPaid;
-      fallback = null;
-      fullFallback = null;
-    }
-
-    // 5. Calculate confidence
-    const confidence = this.sigmoid(totalScore);
-
-    const executionTimeMs = Date.now() - startTime;
+    const selection = this.selectModel(tier, preferFree);
 
     return {
-      tier,
-      model,
-      fullModel,
-      fallback,
-      fullFallback,
-      confidence,
+      ...selection,
+      confidence: this.calculateConfidence(totalScore),
       totalScore,
       scores: dimensionScores,
-      description: tierConfig.description,
-      executionTimeMs,
+      executionTimeMs: Date.now() - startTime,
     };
   }
 
-  /**
-   * Calculate scores for all dimensions
-   */
-  private calculateDimensionScores(text: string): DimensionScore {
-    const scores: DimensionScore = {};
-
-    for (const dimension of this.dimensions.dimensions) {
-      if (dimension.name === 'length') {
-        scores[dimension.name] = this.classifier.scoreLength(text, dimension.weight);
-      } else {
-        scores[dimension.name] = this.classifier.scoreDimension(text, dimension);
-      }
-    }
-
-    return scores;
-  }
-
-  /**
-   * Determine complexity tier based on dimension scores
-   */
-  private determineComplexityTier(scores: DimensionScore, totalScore: number): ComplexityLevel {
-    const thresholds = this.tiers.thresholds;
-
-    // Priority checks for specialized tiers
-    if (scores.reasoning >= thresholds.REASONING_TRIGGER) {
-      return 'REASONING';
-    }
-
-    if (scores.code >= thresholds.CODING_TRIGGER) {
-      return 'CODING';
-    }
-
-    if (scores.creative >= thresholds.CREATIVE_TRIGGER) {
-      return 'CREATIVE';
-    }
-
-    if (scores.multistep >= (thresholds.MULTISTEP_TRIGGER || 0.10)) {
-      return 'COMPLEX';
-    }
-
-    // Simple questions should stay simple even with some technical terms
-    if (scores.simple >= 0.10 && totalScore < 0.30) {
-      return 'SIMPLE';
-    }
-
-    // General complexity tiers based on total score
-    if (totalScore < thresholds.SIMPLE_MAX) {
-      return 'SIMPLE';
-    }
-
-    if (totalScore >= thresholds.PREMIUM_MIN) {
-      return 'PREMIUM';
-    }
-
-    if (totalScore >= thresholds.COMPLEX_MIN) {
-      return 'COMPLEX';
-    }
-
-    // Default to COMPLEX for moderate scores
-    return 'COMPLEX';
-  }
-
-  /**
-   * Score all available models (for advanced routing)
-   */
-  async scoreModels(
-    message: MessageContext,
-    availableModels: string[]
-  ): Promise<ModelScores> {
+  async scoreModels(message: MessageContext, availableModels: string[]): Promise<ModelScores> {
     const dimensionScores = this.calculateDimensionScores(message.text);
-    const totalScore = Object.values(dimensionScores).reduce((sum, score) => sum + score, 0);
+    const totalScore = this.sumScores(dimensionScores);
 
-    const scores: ModelScores = {};
-
-    for (const model of availableModels) {
+    return availableModels.reduce((scores, model) => {
       scores[model] = this.scorer.calculateScore(model, dimensionScores, totalScore, message);
-    }
-
-    return scores;
+      return scores;
+    }, {} as ModelScores);
   }
 
-  /**
-   * Sigmoid function for confidence calibration
-   */
-  private sigmoid(x: number, k: number = 10, midpoint: number = 0.3): number {
-    return 1 / (1 + Math.exp(-k * (x - midpoint)));
-  }
-
-  /**
-   * Format routing result for display
-   */
   formatResult(result: RoutingResult, verbose: boolean = false): string {
     const lines = [
       '📊 **Routing Decision**',
@@ -180,32 +58,81 @@ export class ModelRouter {
       `**Confidence:** ${(result.confidence * 100).toFixed(1)}%`,
     ];
 
-    if (result.fallback) {
-      lines.push(`**Fallback:** \`${result.fallback}\``);
-    }
-
+    if (result.fallback) lines.push(`**Fallback:** \`${result.fallback}\``);
     lines.push(`**Why:** ${result.description}`);
 
-    if (verbose && result.scores) {
-      lines.push('');
-      lines.push('**Dimension Scores:**');
-      
-      const sortedScores = Object.entries(result.scores)
-        .filter(([_, score]) => score > 0)
-        .sort(([_, a], [__, b]) => b - a);
-
-      for (const [dim, score] of sortedScores) {
-        lines.push(`  • ${dim}: ${score.toFixed(4)}`);
-      }
-      
-      lines.push(`  • **total**: ${result.totalScore.toFixed(4)}`);
-    }
-
-    if (verbose && result.executionTimeMs !== undefined) {
-      lines.push('');
-      lines.push(`**Execution Time:** ${result.executionTimeMs}ms`);
+    if (verbose) {
+      this.appendDimensionScores(lines, result);
+      this.appendExecutionTime(lines, result);
     }
 
     return lines.join('\n');
+  }
+
+  private calculateDimensionScores(text: string): DimensionScore {
+    return this.dimensions.dimensions.reduce((scores, dimension) => {
+      scores[dimension.name] = dimension.name === 'length'
+        ? this.classifier.scoreLength(text, dimension.weight)
+        : this.classifier.scoreDimension(text, dimension);
+      return scores;
+    }, {} as DimensionScore);
+  }
+
+  private sumScores(scores: DimensionScore): number {
+    return Object.values(scores).reduce((sum, score) => sum + score, 0);
+  }
+
+  private determineComplexityTier(scores: DimensionScore, totalScore: number): ComplexityLevel {
+    const t = this.tiers.thresholds;
+
+    if (scores.reasoning >= t.REASONING_TRIGGER) return 'REASONING';
+    if (scores.code >= t.CODING_TRIGGER) return 'CODING';
+    if (scores.creative >= t.CREATIVE_TRIGGER) return 'CREATIVE';
+    if (scores.multistep >= (t.MULTISTEP_TRIGGER || 0.10)) return 'COMPLEX';
+    if (scores.simple >= 0.10 && totalScore < 0.30) return 'SIMPLE';
+    if (totalScore < t.SIMPLE_MAX) return 'SIMPLE';
+    if (totalScore >= t.PREMIUM_MIN) return 'PREMIUM';
+    if (totalScore >= t.COMPLEX_MIN) return 'COMPLEX';
+
+    return 'COMPLEX';
+  }
+
+  private selectModel(tier: ComplexityLevel, preferFree: boolean) {
+    const tierConfig = this.tiers.tiers[tier];
+    const useFree = preferFree && tierConfig.free;
+
+    return {
+      tier,
+      model: useFree ? tierConfig.free! : tierConfig.paid,
+      fullModel: useFree ? tierConfig.fullFree! : tierConfig.fullPaid,
+      fallback: useFree ? tierConfig.paid : null,
+      fullFallback: useFree ? tierConfig.fullPaid : null,
+      description: tierConfig.description,
+    };
+  }
+
+  private calculateConfidence(totalScore: number): number {
+    const { K, MIDPOINT } = SIGMOID_PARAMS;
+    return 1 / (1 + Math.exp(-K * (totalScore - MIDPOINT)));
+  }
+
+  private appendDimensionScores(lines: string[], result: RoutingResult): void {
+    const sortedScores = Object.entries(result.scores)
+      .filter(([_, score]) => score > 0)
+      .sort(([_, a], [__, b]) => b - a);
+
+    if (sortedScores.length === 0) return;
+
+    lines.push('', '**Dimension Scores:**');
+    sortedScores.forEach(([dim, score]) => {
+      lines.push(`  • ${dim}: ${score.toFixed(4)}`);
+    });
+    lines.push(`  • **total**: ${result.totalScore.toFixed(4)}`);
+  }
+
+  private appendExecutionTime(lines: string[], result: RoutingResult): void {
+    if (result.executionTimeMs !== undefined) {
+      lines.push('', `**Execution Time:** ${result.executionTimeMs}ms`);
+    }
   }
 }
