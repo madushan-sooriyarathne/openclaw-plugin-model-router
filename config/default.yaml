@@ -1,0 +1,58 @@
+# Model Router Plugin Configuration
+
+model-router:
+  enabled: true
+  
+  # Routing strategy
+  # - cost-optimized: Prioritize free models (default)
+  # - quality-first: Always use best model regardless of cost
+  # - balanced: Mix of cost and quality
+  strategy: cost-optimized
+  
+  # Model pools
+  models:
+    free:
+      - openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      - openrouter/meta-llama/llama-3.3-70b-instruct:free
+      - openrouter/qwen/qwen3-coder:free
+      - openrouter/arcee-ai/trinity-large-preview:free
+      - openrouter/tngtech/deepseek-r1t2-chimera:free
+    
+    premium:
+      - google-antigravity/claude-opus-4-5-thinking
+      - anthropic/claude-sonnet-4-5
+      - anthropic/claude-opus-4-5
+      - anthropic/claude-haiku-4-5
+  
+  # Complexity thresholds (fine-tuning)
+  thresholds:
+    simple_max_tokens: 50
+    coding_keywords:
+      - code
+      - function
+      - debug
+      - error
+      - script
+      - implement
+      - refactor
+    premium_min_score: 0.55
+  
+  # Performance
+  timeout_ms: 100
+  cache_decisions: true
+  cache_ttl_seconds: 300
+  
+  # Logging
+  log_decisions: true
+  log_level: info  # debug | info | warn | error
+  
+  # Channel-specific settings
+  channels:
+    whatsapp:
+      enabled: true
+    telegram:
+      enabled: true
+    discord:
+      enabled: true
+    slack:
+      enabled: true

@@ -1,0 +1,44 @@
+{
+  "name": "@openclaw/plugin-model-router",
+  "version": "1.0.0",
+  "description": "Intelligent model routing plugin for OpenClaw - automatically routes requests to optimal LLM based on 14-dimension scoring",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "echo \"Tests will be added in future versions\" && exit 0",
+    "lint": "echo \"Linting will be added in future versions\" && exit 0",
+    "clean": "rm -rf dist",
+    "prepublish": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "model-router",
+    "llm",
+    "routing",
+    "ai",
+    "cost-optimization"
+  ],
+  "author": "OpenClaw Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/madushan-sooriyarathne/openclaw-plugin-model-router.git"
+  },
+  "bugs": {
+    "url": "https://github.com/madushan-sooriyarathne/openclaw-plugin-model-router/issues"
+  },
+  "homepage": "https://github.com/madushan-sooriyarathne/openclaw-plugin-model-router#readme",
+  "dependencies": {
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "version": "1.0",
+  "description": "14-dimension weighted scoring for LLM request routing (adapted from ClawRouter)",
+  "dimensions": [
+    {
+      "name": "reasoning",
+      "weight": 0.18,
+      "max": 3,
+      "patterns": [
+        "\\bprove\\b",
+        "\\btheorem\\b",
+        "\\bproof\\b",
+        "step[- ]by[- ]step",
+        "\\bderive\\b",
+        "\\bdeduction\\b",
+        "\\blogic(al)?\\b",
+        "\\bformal(ly)?\\b",
+        "work(ing)?\\s+through",
+        "think.*through",
+        "reason(ing)?\\s+(about|through)",
+        "\\bwhy does\\b",
+        "\\bexplain why\\b"
+      ]
+    },
+    {
+      "name": "code",
+      "weight": 0.15,
+      "max": 3,
+      "patterns": [
+        "```",
+        "\\bfunction\\b",
+        "\\bclass\\b",
+        "\\basync\\b",
+        "\\bawait\\b",
+        "\\bimport\\b",
+        "\\bexport\\b",
+        "\\bconst\\b",
+        "\\bdef\\b",
+        "\\breturn\\b",
+        "\\.py\\b",
+        "\\.js\\b",
+        "\\.ts\\b",
+        "\\.tsx\\b",
+        "\\.go\\b",
+        "\\.rs\\b",
+        "\\.java\\b",
+        "\\bcode\\b",
+        "\\bdebug\\b",
+        "\\bbug\\b",
+        "\\bfix\\b.*\\b(code|error|issue)\\b",
+        "\\brefactor\\b",
+        "\\bimplement\\b",
+        "\\bscript\\b",
+        "\\bpython\\b",
+        "\\bjavascript\\b",
+        "\\btypescript\\b",
+        "\\bgolang\\b",
+        "\\brust\\b",
+        "\\bwrite\\s+.*(function|class|script|code|program)\\b",
+        "\\bcreate\\s+.*(function|class|script|code|program)\\b",
+        "\\bprogram\\b",
+        "\\bapi\\s+(endpoint|route)\\b",
+        "\\bendpoint\\b"
+      ]
+    },
+    {
+      "name": "simple",
+      "weight": 0.12,
+      "max": 2,
+      "patterns": [
+        "^(hi|hey|hello|sup|yo|thanks|thank you|ok|okay|cool|nice|got it)\\s*[!?.]*$",
+        "\\bwhat is\\b",
+        "\\bwho is\\b",
+        "\\bdefine\\b",
+        "\\btranslate\\b",
+        "\\bwhat time\\b",
+        "\\bweather\\b",
+        "\\bhow are you\\b",
+        "\\bgood (morning|afternoon|evening|night)\\b"
+      ]
+    },
+    {
+      "name": "multistep",
+      "weight": 0.12,
+      "max": 3,
+      "patterns": [
+        "first.*then",
+        "step\\s*[0-9]",
+        "\\b1\\.\\s",
+        "\\b2\\.\\s",
+        "\\bplan\\b",
+        "\\bworkflow\\b",
+        "\\bpipeline\\b",
+        "\\bprocess\\b.*\\bsteps\\b",
+        "\\bsequence\\b",
+        "\\bphase\\b",
+        "\\banalyze\\b",
+        "\\banalysis\\b",
+        "\\bcompare\\b",
+        "\\bcomparison\\b",
+        "\\bevaluate\\b",
+        "\\breview\\b",
+        "\\bassess\\b",
+        "\\bexamine\\b",
+        "\\binvestigate\\b",
+        "\\bresearch\\b",
+        "\\bstudy\\b",
+        "\\bsynthesize\\b",
+        "\\bsummarize\\b.*\\b(multiple|several|various)\\b"
+      ]
+    },
+    {
+      "name": "technical",
+      "weight": 0.10,
+      "max": 3,
+      "patterns": [
+        "\\balgorithm\\b",
+        "\\bkubernetes\\b",
+        "\\bdocker\\b",
+        "\\bdistributed\\b",
+        "\\barchitecture\\b",
+        "\\bmicroservices?\\b",
+        "\\bdatabase\\b",
+        "\\bsql\\b",
+        "\\bapi\\b",
+        "\\brest\\b",
+        "\\bgraphql\\b",
+        "\\baws\\b",
+        "\\bgcp\\b",
+        "\\bazure\\b",
+        "\\bterraform\\b",
+        "\\bci\\/cd\\b",
+        "\\bml\\b",
+        "\\bneural\\b",
+        "\\btransformer\\b"
+      ]
+    },
+    {
+      "name": "length",
+      "weight": 0.08,
+      "max": 2,
+      "description": "Computed dynamically based on token/char count",
+      "patterns": []
+    },
+    {
+      "name": "creative",
+      "weight": 0.05,
+      "max": 2,
+      "patterns": [
+        "\\bstory\\b",
+        "\\bpoem\\b",
+        "\\bhaiku\\b",
+        "\\blyrics\\b",
+        "\\bcreative\\b",
+        "\\bbrainstorm\\b",
+        "\\bimagine\\b",
+        "\\bfiction\\b",
+        "\\bnarrative\\b",
+        "\\bsong\\b",
+        "\\bwrite\\s+(a\\s+)?(story|poem|song|script|haiku)\\b"
+      ]
+    },
+    {
+      "name": "questions",
+      "weight": 0.05,
+      "max": 2,
+      "description": "Multiple question marks indicate complexity",
+      "patterns": [
+        "\\?.*\\?",
+        "\\?.*\\?.*\\?"
+      ]
+    },
+    {
+      "name": "constraints",
+      "weight": 0.04,
+      "max": 2,
+      "patterns": [
+        "\\bat most\\b",
+        "\\bat least\\b",
+        "\\bmaximum\\b",
+        "\\bminimum\\b",
+        "\\bO\\([^)]+\\)",
+        "\\bexactly\\b",
+        "\\bno more than\\b",
+        "\\bwithin\\b.*\\b(seconds|minutes|bytes|mb|gb)\\b"
+      ]
+    },
+    {
+      "name": "imperative",
+      "weight": 0.03,
+      "max": 2,
+      "patterns": [
+        "^(build|create|implement|design|develop|make|write|generate)\\b",
+        "\\b(build|create|implement)\\s+(a|an|the)\\b"
+      ]
+    },
+    {
+      "name": "format",
+      "weight": 0.03,
+      "max": 2,
+      "patterns": [
+        "\\bjson\\b",
+        "\\byaml\\b",
+        "\\bschema\\b",
+        "\\bcsv\\b",
+        "\\bmarkdown\\b",
+        "\\bxml\\b",
+        "\\bformat\\s+(as|in|to)\\b"
+      ]
+    },
+    {
+      "name": "domain",
+      "weight": 0.02,
+      "max": 2,
+      "patterns": [
+        "\\bquantum\\b",
+        "\\bfpga\\b",
+        "\\bgenomics\\b",
+        "\\bcryptography\\b",
+        "\\bblockchain\\b",
+        "\\bfinance\\b",
+        "\\btrading\\b",
+        "\\bmedical\\b",
+        "\\blegal\\b"
+      ]
+    },
+    {
+      "name": "reference",
+      "weight": 0.02,
+      "max": 2,
+      "patterns": [
+        "\\bthe docs\\b",
+        "\\bthe api\\b",
+        "\\babove\\b",
+        "\\bprevious(ly)?\\b",
+        "\\bearlier\\b",
+        "\\bmentioned\\b"
+      ]
+    },
+    {
+      "name": "negation",
+      "weight": 0.01,
+      "max": 2,
+      "patterns": [
+        "\\bdon'?t\\b",
+        "\\bavoid\\b",
+        "\\bwithout\\b",
+        "\\bnever\\b",
+        "\\bexcept\\b",
+        "\\bnot\\s+\\w+\\s+but\\b"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "version": "1.0",
+  "description": "Tier to model mappings - FREE models prioritized",
+  "tiers": {
+    "SIMPLE": {
+      "description": "Greetings, definitions, quick Q&A, simple lookups",
+      "free": "qwen3-80b",
+      "paid": "haiku",
+      "fullFree": "openrouter/qwen/qwen3-next-80b-a3b-instruct:free",
+      "fullPaid": "anthropic/claude-haiku-4-5"
+    },
+    "CODING": {
+      "description": "Code generation, debugging, reviews, refactoring",
+      "free": "qwen-coder",
+      "paid": "sonnet",
+      "fullFree": "openrouter/qwen/qwen3-coder:free",
+      "fullPaid": "anthropic/claude-sonnet-4-5"
+    },
+    "CREATIVE": {
+      "description": "Stories, poems, brainstorming, creative writing",
+      "free": "trinity",
+      "paid": "sonnet",
+      "fullFree": "openrouter/arcee-ai/trinity-large-preview:free",
+      "fullPaid": "anthropic/claude-sonnet-4-5"
+    },
+    "REASONING": {
+      "description": "Math, proofs, logic, step-by-step analysis",
+      "free": "r1t2-chimera",
+      "paid": "opus",
+      "fullFree": "openrouter/tngtech/deepseek-r1t2-chimera:free",
+      "fullPaid": "anthropic/claude-opus-4-5"
+    },
+    "COMPLEX": {
+      "description": "Multi-step tasks, analysis, research, synthesis",
+      "free": "llama-3.3",
+      "paid": "sonnet",
+      "fullFree": "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+      "fullPaid": "anthropic/claude-sonnet-4-5"
+    },
+    "PREMIUM": {
+      "description": "Architecture design, deep planning, critical decisions",
+      "free": null,
+      "paid": "opus",
+      "fullFree": null,
+      "fullPaid": "google-antigravity/claude-opus-4-5-thinking"
+    }
+  },
+  "thresholds": {
+    "SIMPLE_MAX": 0.15,
+    "COMPLEX_MIN": 0.35,
+    "PREMIUM_MIN": 0.55,
+    "REASONING_TRIGGER": 0.12,
+    "CODING_TRIGGER": 0.10,
+    "CREATIVE_TRIGGER": 0.04,
+    "MULTISTEP_TRIGGER": 0.10
+  }
+}
