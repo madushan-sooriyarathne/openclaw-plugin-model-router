@@ -1,0 +1,67 @@
+#!/bin/bash
+# Comprehensive test of all complexity tiers
+
+echo "======================================"
+echo "Model Router Plugin - Full Test Suite"
+echo "======================================"
+echo ""
+
+echo "Test 1: SIMPLE - Greeting"
+echo "Input: 'Hello'"
+node dist/index.js "Hello"
+echo ""
+echo "---"
+echo ""
+
+echo "Test 2: SIMPLE - Definition"
+echo "Input: 'What is machine learning?'"
+node dist/index.js "What is machine learning?"
+echo ""
+echo "---"
+echo ""
+
+echo "Test 3: CODING - Function Request"
+echo "Input: 'Write a Python function to reverse a string'"
+node dist/index.js "Write a Python function to reverse a string"
+echo ""
+echo "---"
+echo ""
+
+echo "Test 4: CODING - Debug Request"
+echo "Input: 'Debug this code: function foo() { return bar; }'"
+node dist/index.js "Debug this code: function foo() { return bar; }"
+echo ""
+echo "---"
+echo ""
+
+echo "Test 5: REASONING - Math Proof"
+echo "Input: 'Prove that the square root of 2 is irrational'"
+node dist/index.js "Prove that the square root of 2 is irrational"
+echo ""
+echo "---"
+echo ""
+
+echo "Test 6: CREATIVE - Story"
+echo "Input: 'Write a short story about a robot learning to feel emotions'"
+node dist/index.js "Write a short story about a robot learning to feel emotions"
+echo ""
+echo "---"
+echo ""
+
+echo "Test 7: COMPLEX - Multi-step Analysis"
+echo "Input: 'Analyze these three investment strategies and compare their risks'"
+node dist/index.js "Analyze these three investment strategies and compare their risks"
+echo ""
+echo "---"
+echo ""
+
+echo "Test 8: PREMIUM - Architecture"
+echo "Input: 'Design a distributed microservices architecture for a high-frequency trading platform with Kubernetes orchestration, using CQRS patterns and event sourcing'"
+node dist/index.js "Design a distributed microservices architecture for a high-frequency trading platform with Kubernetes orchestration, using CQRS patterns and event sourcing"
+echo ""
+echo "---"
+echo ""
+
+echo "======================================"
+echo "All Tests Completed!"
+echo "======================================"
